@@ -17,3 +17,8 @@ up: build
 	sleep 180
 	make install
 	
+test:
+	nosetests test/*_test.py -v --with-id
+
+.PHONY: test
+	
