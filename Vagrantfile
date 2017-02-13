@@ -46,8 +46,11 @@ Vagrant.configure("2") do |config|
 	d.build_dir = "."
 	d.force_host_vm = false
 	d.name = "osquery"
-	d.remains_running = true
-	d.create_args = ["--env", "SPLUNK_START_ARGS=--accept-license", "--env", "SPLUNK_USER=root", "--publish", "8000:8000"]
+	d.create_args = [
+    "--env", "SPLUNK_START_ARGS=--accept-license", 
+    "--env", "SPLUNK_USER=root", 
+    "--publish", "8000:8000",
+    "--publish", "8089:8089"]
   end
 
   #
