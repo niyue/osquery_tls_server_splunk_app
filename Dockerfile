@@ -1,4 +1,4 @@
-FROM splunk/splunk:6.5.2
+FROM splunk/splunk:6.5.2-monitor
 
 RUN apt-get update \
 	&& apt-get install -y vim \
