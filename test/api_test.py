@@ -20,10 +20,21 @@ class OsqueryClient:
         info = resp.json()
         return info
     
-    def get_config(self):
-        resp = requests.get(self.api('config'), verify=False)        
+    def get_config(self, node_key):
+        resp = requests.post(self.api('config'), verify=False, data=json.dumps({
+            'node_key': node_key
+        }))        
         config = resp.json()
         return config 
+        
+    def add_log(self, node_key, log_type, events):
+        resp = requests.post(self.api('logger'), verify=False, data=json.dumps({
+            'node_key': node_key,
+            'log_type': log_type,
+            'data': events
+        }))        
+        result = resp.json()
+        return result 
 
     def get_enrollments(self):
         resp = requests.get(self.api('enroll'), verify=False)        
@@ -46,8 +57,12 @@ class ApiTest(unittest.TestCase):
         self.assertIsNotNone(info)
         
     def test_get_config(self):
-        config = self.client.get_config()
+        config = self.client.get_config('test_node_key')
         self.assertIsNotNone(config)
+        
+    def test_add_log(self):
+        result = self.client.add_log('test_node_key', 'status', [])
+        self.assertIsNotNone(result)
         
     def test_get_enroll(self):
         enrollments = self.client.get_enrollments()

@@ -23,7 +23,7 @@ ENROLL_RESPONSE = {
 
 SIMPLE_CONFIG = {
     "schedule": {
-        "tls_proc": {"query": "select * from processes", "interval": 60},
+        "process_query": {"query": "select * from processes", "interval": 60},
     },
     "node_invalid": False,
 }
@@ -41,8 +41,26 @@ class ServerInfo(RestEndpoint):
         self.writeJson(info)
         
 class NodeConfig(RestEndpoint):
-    def handle_GET(self):
+    def handle_POST(self):
         self.writeJson(SIMPLE_CONFIG)
+        
+class Logger(RestEndpoint):
+    
+    SUCCESS = {'node_invalid': False}
+    
+    def handle_POST(self):
+        event = json.loads(self.request["payload"])
+        self._add_log(event)
+        self.writeJson(Logger.SUCCESS)
+        
+    def _add_log(self, event):
+        payload = {}
+        payload.update({'index': TARGET_INDEX})
+        payload.update({'sourcetype': 'events'})
+        payload.update({'source': event.get('node_key')})
+        payload.update({'host': socket.gethostname()})
+        payload.update({'event': event})
+        hec.sendEvent(payload)
         
 class EnrollmentCollection(RestEndpoint):
     def handle_GET(self):
@@ -80,3 +98,5 @@ class EnrollmentCollection(RestEndpoint):
             'node_key': node_key
         }})
         hec.sendEvent(payload)
+        
+    
