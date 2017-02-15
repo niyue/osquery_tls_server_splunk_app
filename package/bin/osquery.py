@@ -30,6 +30,7 @@ SIMPLE_CONFIG = {
 
 class RestEndpoint(splunk.rest.BaseRestHandler):
     def writeJson(self, data):
+        self.response.setHeader('content-type', 'application/json')
         self.response.write(json.dumps(data))
   
 class ServerInfo(RestEndpoint):

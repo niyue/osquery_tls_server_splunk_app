@@ -20,24 +20,11 @@ up: build
 test:
 	nosetests test/*_test.py -v --with-id
 
-osqueryd:
-	osqueryd --verbose \
-		--pidfile /tmp/osqueryd.pid \
-		--database_path /tmp/osquery.db/ \
-		--tls_hostname localhost:8089 \
-		--tls_server_certs ./assets/cacert.pem \
-		--enroll_tls_endpoint /services/osquery/enroll \
-		--enroll_secret_path ./assets/test_enroll_secret.txt \
-		--config_plugin tls \
-		--logger_plugin tls  \
-		--config_tls_endpoint /config \
-		--logger_tls_endpoint /log
+build_osquery_client:
+	docker build --file osqueryDockerfile --tag niyue/osquery .
 
-		#--distributed_plugin=tls \
-		#--distributed_tls_read_endpoint /distributed_read \
-		#--distributed_tls_write_endpoint /distributed_write \
-		#--disable_distributed=false \
-		#--distributed_interval=60
+osqueryd:
+	docker run --add-host SplunkServerDefaultCert:172.17.0.1 niyue/osquery
 
 .PHONY: test
 	
