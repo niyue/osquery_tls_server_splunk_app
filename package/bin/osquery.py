@@ -2,6 +2,7 @@ import splunk.rest
 import json
 import uuid
 import socket
+import time
 from uHEC import http_event_collector
 
 ENROLL_SECRET = 'this_is_enroll_secret'
@@ -27,6 +28,16 @@ SIMPLE_CONFIG = {
     },
     "node_invalid": False,
 }
+
+def _send_event(event, index, sourcetype, source, event_time=str(int(time.time()))):
+    payload = {}
+    payload.update({'index': index})
+    payload.update({'sourcetype': sourcetype})
+    payload.update({'source': source})
+    payload.update({'host': socket.gethostname()})
+    payload.update({'event': event})
+    payload.update({'time': event_time})
+    hec.sendEvent(payload)
 
 class RestEndpoint(splunk.rest.BaseRestHandler):
     def writeJson(self, data):
@@ -55,13 +66,7 @@ class Logger(RestEndpoint):
         self.writeJson(Logger.SUCCESS)
         
     def _add_log(self, event):
-        payload = {}
-        payload.update({'index': TARGET_INDEX})
-        payload.update({'sourcetype': 'events'})
-        payload.update({'source': event.get('node_key')})
-        payload.update({'host': socket.gethostname()})
-        payload.update({'event': event})
-        hec.sendEvent(payload)
+        _send_event(event, TARGET_INDEX, 'event', event.get('node_key'))
         
 class EnrollmentCollection(RestEndpoint):
     def handle_GET(self):
@@ -90,14 +95,9 @@ class EnrollmentCollection(RestEndpoint):
         self.writeJson(enroll_success)
 
     def _add_node_enrollment(self, host_identifier, node_key):
-        payload = {}
-        payload.update({'index': TARGET_INDEX})
-        payload.update({'sourcetype': 'enrollment'})
-        payload.update({'source': host_identifier})
-        payload.update({'host': socket.gethostname()})
-        payload.update({'event': {
+        event = {'event': {
             'node_key': node_key
-        }})
-        hec.sendEvent(payload)
+        }}
+        _send_event(event, TARGET_INDEX, 'enrollment', host_identifier)
         
     
