@@ -47,6 +47,24 @@ class OsqueryClient:
             data=json.dumps(enrollment))        
         enrollment_result = resp.json()
         return enrollment_result
+        
+    def read_queries(self, node_key):
+        resp = requests.post(self.api('distributed_read'), 
+            verify=False, 
+            data=json.dumps({'node_key': node_key}))        
+        queries = resp.json()
+        return queries
+        
+    def write_query_results(self, node_key, queries, statuses):
+        resp = requests.post(self.api('distributed_write'), 
+            verify=False, 
+            data=json.dumps({
+                'node_key': node_key,
+                'queries': queries,
+                'statuses': statuses}))        
+        result = resp.json()
+        return result
+
 
 class ApiTest(unittest.TestCase):
     def setUp(self):
@@ -59,10 +77,12 @@ class ApiTest(unittest.TestCase):
     def test_get_config(self):
         config = self.client.get_config('test_node_key')
         self.assertIsNotNone(config)
+        self.assertFalse(config['node_invalid'])
         
     def test_add_log(self):
         result = self.client.add_log('test_node_key', 'status', [])
         self.assertIsNotNone(result)
+        self.assertFalse(result['node_invalid'])
         
     def test_get_enroll(self):
         enrollments = self.client.get_enrollments()
@@ -76,4 +96,21 @@ class ApiTest(unittest.TestCase):
         self.assertIsNotNone(enrollment_result)
         self.assertIsNotNone(enrollment_result['node_key'])
         self.assertIsNotNone(enrollment_result['node_invalid'])
+        
+    def test_read_queries(self):
+        queries = self.client.read_queries('test_node_key')
+        self.assertIsNotNone(queries)
+        self.assertFalse(queries['node_invalid'])
+        
+    def test_write_query_results(self):
+        result = self.client.write_query_results('test_node_key', {
+            'test_query_id': {
+                'pid': '1',
+                'name': 'osqueryd'
+            }
+        }, {'test_query_id': 0})
+        self.assertIsNotNone(result)
+        self.assertFalse(result['node_invalid'])
+        
+    
         

@@ -29,7 +29,10 @@ SIMPLE_CONFIG = {
     "node_invalid": False,
 }
 
-def _send_event(event, index, sourcetype, source, event_time=str(int(time.time()))):
+def _now():
+    return str(int(time.time()))
+
+def _send_event(event, index, sourcetype, source, event_time=_now()):
     payload = {}
     payload.update({'index': index})
     payload.update({'sourcetype': sourcetype})
@@ -100,4 +103,47 @@ class EnrollmentCollection(RestEndpoint):
         }}
         _send_event(event, TARGET_INDEX, 'enrollment', host_identifier)
         
-    
+class DistributedRead(RestEndpoint):
+    def handle_POST(self):
+        node_info = json.loads(self.request["payload"])
+        node_key = node_info.get('node_key')
+        queries = {
+            "queries": {
+                str(uuid.uuid4()): "SELECT * FROM osquery_info",
+                str(uuid.uuid4()): "SELECT * FROM processes"
+            },
+            "node_invalid": False
+        }
+        for query_id, query in queries['queries'].iteritems():
+            _send_event({'node_key': node_key, 'query_id': query_id, 'query': query}, 
+                TARGET_INDEX, 'issued_query', node_key)
+        
+        self.writeJson(queries)
+        
+class DistributedWrite(RestEndpoint):
+    def handle_POST(self):
+        query_results = json.loads(self.request["payload"])
+        query_statuses = query_results['statuses']
+        node_key = query_results.get('node_key')
+        for query_id, status in query_statuses.iteritems():
+            self._write_query_result(query_id, status, node_key, query_results)
+                
+        SUCCESS = {
+            "node_invalid": False
+        }
+        self.writeJson(SUCCESS)
+        
+    def _write_query_result(self, query_id, status, node_key, query_results):
+        source = query_id + '_' + node_key
+        if self._is_query_success(status):
+            rows = query_results['queries'][query_id]
+            now = _now()
+            for row in rows:
+                row['_query_id'] = query_id
+                row['_node_key'] = node_key
+                _send_event(row, TARGET_INDEX, 'query_results', source, event_time=now)
+        else:
+            _send_event({'query_id': query_id, 'node_key': node_key, 'status': status}, TARGET_INDEX, 'failed_queries', source)
+        
+    def _is_query_success(self, status):
+        return status == '0'
