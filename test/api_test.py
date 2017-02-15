@@ -19,6 +19,13 @@ class OsqueryClient:
         resp = requests.get(self.api('info'), verify=False)        
         info = resp.json()
         return info
+        
+    def submit_ad_hoc_query(self, query):
+        resp = requests.post(self.api('ad_hoc_queries'), verify=False, data=json.dumps({
+            'query': query    
+        }))        
+        result = resp.json()
+        return result 
     
     def get_config(self, node_key):
         resp = requests.post(self.api('config'), verify=False, data=json.dumps({
@@ -111,6 +118,12 @@ class ApiTest(unittest.TestCase):
         }, {'test_query_id': 0})
         self.assertIsNotNone(result)
         self.assertFalse(result['node_invalid'])
+        
+    def test_submit_ad_hoc_query(self):
+        result = self.client.submit_ad_hoc_query('SELECT * FROM processes')
+        self.assertIsNotNone(result) 
+        self.assertIsNotNone(result['query_id']) 
+        self.assertIsNotNone(result['query']) 
         
     
         
