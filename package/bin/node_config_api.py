@@ -2,7 +2,7 @@ from base_api_endpoint import RestEndpoint
 
 SIMPLE_CONFIG = {
     "schedule": {
-        "process_query": {"query": "select * from processes", "interval": 60},
+        "process_query": {"query": "select * from processes", "interval": 600},
     },
     "node_invalid": False,
 }

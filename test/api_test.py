@@ -124,11 +124,11 @@ class ApiTest(unittest.TestCase):
         
     def test_write_query_results(self):
         result = self.client.write_query_results('test_node_key', {
-            'test_query_id': {
+            'test_query_id': [{
                 'pid': '1',
                 'name': 'osqueryd'
-            }
-        }, {'test_query_id': 0})
+            }]}, 
+            {'test_query_id': '0'})
         self.assertIsNotNone(result)
         self.assertFalse(result['node_invalid'])
         

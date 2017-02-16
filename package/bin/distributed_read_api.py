@@ -1,5 +1,4 @@
 import json
-import uuid
 from base_api_endpoint import RestEndpoint
 import app_config
 from splunk.appserver.mrsparkle.lib import util
@@ -48,7 +47,7 @@ class DistributedRead(RestEndpoint):
     def _exec_search(self, service, search):
         logger.info('action=about_to_execute_pending_queries_search search="%s"', search)
         job = service.jobs.create(search, **{'exec_mode': 'blocking'})
-        logger.info('action=finish_pending_queries_search job="%s"', job.content)
+        logger.debug('action=finish_pending_queries_search job="%s"', job.content)
         if job.content.get('messages') and job.content.get('messages').get('error'):
             raise RuntimeError(job.content.messages['error'])
         else:
