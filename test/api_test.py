@@ -1,4 +1,5 @@
 import requests
+from requests.auth import HTTPBasicAuth
 import unittest
 import json
 from urlparse import urljoin
@@ -7,6 +8,8 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 BASE_URL = 'https://localhost:8089'
+USERNAME = 'admin'
+PASSWORD = 'changeme'
 
 class OsqueryClient:
     def __init__(self, base_url=BASE_URL):
@@ -71,6 +74,16 @@ class OsqueryClient:
                 'statuses': statuses}))        
         result = resp.json()
         return result
+        
+    def run_submit_ad_hoc_query_command(self, command):
+        job_export_api = urljoin(self.base_url, '/services/search/jobs/export') 
+        resp = requests.post(job_export_api, 
+            verify=False, 
+            data={'search': command},
+            params={'output_mode': 'json'},
+            auth=HTTPBasicAuth(USERNAME, PASSWORD))        
+        results = resp.json()
+        return results
 
 
 class ApiTest(unittest.TestCase):
@@ -124,6 +137,13 @@ class ApiTest(unittest.TestCase):
         self.assertIsNotNone(result) 
         self.assertIsNotNone(result['query_id']) 
         self.assertIsNotNone(result['query']) 
+        
+    def test_run_ad_hoc_query_command(self):
+        results = self.client.run_submit_ad_hoc_query_command('| osquery "SELECT * FROM processes"')
+        self.assertIsNotNone(results) 
+        self.assertEqual(2, len(results['result']))
+        self.assertIsNotNone(results['result']['query_id'])
+        self.assertEqual('SELECT * FROM processes', results['result']['query'])
         
     
         
