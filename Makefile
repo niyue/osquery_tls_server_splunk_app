@@ -7,6 +7,11 @@ ssh:
 restart:
 	docker exec osquery "/opt/splunk/bin/splunk" restart
 
+clean_index:
+	docker exec osquery "/opt/splunk/bin/splunk" stop
+	docker exec osquery "/opt/splunk/bin/splunk" clean eventdata -index main
+	docker exec osquery "/opt/splunk/bin/splunk" start
+
 install:
 	docker exec osquery ln -sf /vagrant/package /opt/splunk/etc/apps/osquery_tls_server_splunk_app
 	docker exec osquery cp -rf /vagrant/provision/server.conf /opt/splunk/etc/system/local
@@ -21,10 +26,12 @@ test:
 	nosetests test/*_test.py -v --with-id
 
 build_osquery_client:
-	docker build --file osqueryDockerfile --tag niyue/osquery .
+	docker build --file osquery/Dockerfile --tag niyue/osquery .
+	docker build --file osquery/centosDockerfile --tag niyue/osquery:centos .
+	docker build --file osquery/centos6Dockerfile --tag niyue/osquery:centos6 .
 
 osqueryd:
 	docker run --add-host SplunkServerDefaultCert:172.17.0.1 niyue/osquery
-
+	
 .PHONY: test
 	
