@@ -39,15 +39,19 @@ Get it up and running
 	* Create the Docker containers within the Docker swarm cluster, `docker stack deploy --compose-file docker-stack.yml osqueryd`
 	* All containers will enroll into the osquery TLS serer splunk app automatically
 
+You should now be able to access the Splunk enterprise web UI via http://localhost:8000 with admin/changeme as credentials.
+
+
 Issue osquery to the TLS server
-=====================================	
+======================
+
 * (Optional) Install Splunk time line app (https://splunkbase.splunk.com/app/3120/) for visualizing the query submission/query reading/query result writing process by using the following query as real time query (recent 300 seconds):
 	`index=main (sourcetype="submitted_query" OR sourcetype="issued_query" OR sourcetype="query_results") | eval title=node_key | fillnull value=query_submitted title | sort - title | table _time, title, sourcetype`
 	
 * Submit Splunk search like this in search box:
 	`` `osquery("SELECT name, major, minor FROM os_version")` | eval distro=name + " " + major | stats count by distro``
 	
-* One more demo for not on disk process:
+* One more demo for detecting not on disk process:
 	* `docker ps` to find a osquery container id
 	* `docker exec -it ${some_osquery_container_id} bash`
 	* start a background process in this container, `top &`
@@ -56,3 +60,9 @@ Issue osquery to the TLS server
 		`` `osquery("SELECT name, pid, path FROM processes WHERE on_disk=0")` ``
 	
 * For more queries, please consult osquery's [doc](https://osquery.io/docs/tables/)
+
+
+TODO
+=========
+* Some of the app configurations, such as the target index used for storing data and the credentials used to talk to Splunk/HEC are hard coded in package/bin/app_config.py, and should be externalized into some configuration file later.
+* So far, the osquery will be sent to all enrolled nodes, which may not be desireable in some case, this could be improved by introducing more functions when distributing the queries.
