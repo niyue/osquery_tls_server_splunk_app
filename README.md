@@ -62,7 +62,64 @@ Issue osquery to the TLS server
 * For more queries, please consult osquery's [doc](https://osquery.io/docs/tables/)
 
 
+TLS server remote APIs
+==========================
+* Enroll API
+
+~~~
+curl -X "POST" "https://localhost:8089/services/osquery/enroll" \
+     -H "Content-Type: application/json; charset=utf-8" \
+     -d $'{
+  		"host_identifier": "paw_host",
+	    "enroll_secret": "this_is_enroll_secret"
+	  }'
+~~~
+
+* Config API
+
+~~~
+curl -X "POST" "https://localhost:8089/services/osquery/config" \
+     -H "Content-Type: application/json; charset=utf-8" \
+     -d $'{
+  		"host_identifier": "localhost",
+  		"enroll_secret": "this_is_enroll_secret"
+     }'
+~~~
+
+* Logger API
+
+~~~
+curl -X "POST" "https://localhost:8089/services/osquery/logger" \
+     -H "Content-Type: application/json; charset=utf-8" \
+     -d $'{
+  		"data": "",
+  		"log_type": "status",
+  		"node_key": "test_node_key"
+	  }'
+~~~
+
+* Distributed read API
+
+~~~
+curl -X "POST" "https://localhost:8089/services/osquery/distributed_read" \
+     -H "Content-Type: application/json; charset=utf-8" \
+     -d $'{
+  		"node_key": "test_node_key"
+	  }'
+~~~
+
+* Distributed write API
+
+~~~
+curl -X "POST" "https://localhost:8089/services/osquery/distributed_write" \
+     -H "Content-Type: application/json; charset=utf-8" \
+     -d $'{
+  		"node_key": "test_node_key"
+	  }'
+~~~
+
 TODO
 =========
 * Some of the app configurations, such as the target index used for storing data and the credentials used to talk to Splunk/HEC are hard coded in package/bin/app_config.py, and should be externalized into some configuration file later.
+* No authentication is required for consuming the remote API for enrolled nodes, some additional authentication, like TLS client certificate authentication will be needed in production deployment
 * So far, the osquery will be sent to all enrolled nodes, which may not be desireable in some case, this could be improved by introducing more functions when distributing the queries.
