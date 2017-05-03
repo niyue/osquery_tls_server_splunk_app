@@ -14,7 +14,7 @@ clean_index:
 
 install:
 	docker exec osquery ln -sf /vagrant/package /opt/splunk/etc/apps/osquery_tls_server_splunk_app
-	docker exec osquery cp -rf /vagrant/provision/server.conf /opt/splunk/etc/system/local
+	docker exec osquery cp -rf /vagrant/assets/server.conf /opt/splunk/etc/system/local
 	make restart
 	
 up: build
