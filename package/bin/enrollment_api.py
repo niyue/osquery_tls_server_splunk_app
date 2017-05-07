@@ -26,6 +26,7 @@ class EnrollmentCollection(RestEndpoint):
         
     def handle_POST(self):
         enrollment = json.loads(self.request["payload"])
+        self._logger().info('action=enrollment_request enrollment=%s', enrollment)
         #if ENROLL_SECRET != enrollment['enroll_secret']:
         #    self._write_json(FAILED_ENROLL_RESPONSE)
         #else:

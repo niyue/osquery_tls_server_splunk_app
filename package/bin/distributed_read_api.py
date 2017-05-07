@@ -7,9 +7,6 @@ sys.path.append(os.path.join(util.get_apps_dir(), 'framework', 'contrib', 'splun
 import splunklib.client as client
 import splunklib.results as results
 
-import logging
-logger = logging.getLogger('splunk.rest')
-
 class DistributedRead(RestEndpoint):
     def handle_POST(self):
         node_info = json.loads(self.request['payload'])
@@ -29,7 +26,7 @@ class DistributedRead(RestEndpoint):
         search = self._pending_queries_search_string(node_key)
         service = self._get_service()
         results = self._exec_search(service, search)
-        logger.info('action=pending_queries_retrieved results=%s', len(results))
+        self._logger().info('action=pending_queries_retrieved results=%s', len(results))
         queries = dict((r['query_id'], r['query']) for r in results)
         return queries
         
@@ -45,9 +42,9 @@ class DistributedRead(RestEndpoint):
             port=app_config.PORT)
         
     def _exec_search(self, service, search):
-        logger.info('action=about_to_execute_pending_queries_search search="%s"', search)
+        self._logger().info('action=about_to_execute_pending_queries_search search="%s"', search)
         job = service.jobs.create(search, **{'exec_mode': 'blocking'})
-        logger.debug('action=finish_pending_queries_search job="%s"', job.content)
+        self._logger().debug('action=finish_pending_queries_search job="%s"', job.content)
         if job.content.get('messages') and job.content.get('messages').get('error'):
             raise RuntimeError(job.content.messages['error'])
         else:

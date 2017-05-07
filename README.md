@@ -19,13 +19,14 @@ This is a sample osquery that performs an osquery to get OS distros for all node
 SELECT name, major, minor FROM os_version
 ```
 
-You can issue an osquery using the `osquery` macro in the Splunk app with some additional SPL commands you want in the search pipleline, for example:
+You can issue an osquery using the `osquery` macro in the Splunk app with some additional SPL commands you want in the search pipleline. For example:
 
 ```
 `osquery("SELECT name, major, minor FROM os_version")`
 | eval distro=name + " " + major
 | stats count by distro
 ```
+NOTE: Because the osquery results are written back asynchrounusly from multiple nodes, please submit this query as *a real time Splunk search*, with 300 second window for example, so that you can see the results directly, and if you submit it as a plain Splunk search, you may not see any result because the results are not written back yet.
 
 ![OS distro distribution query](./assets/os-distro-query.png "OS distro distribution query")
 
@@ -94,7 +95,7 @@ You should now be able to access the Splunk enterprise web UI via http://localho
 Issue osquery to the TLS server
 ======================
 
-* (Optional) Install Splunk time line app (https://splunkbase.splunk.com/app/3120/) for visualizing the query submission/query reading/query result writing process by using the following query as real time query (recent 300 seconds):
+* (Optional) Install Splunk time line app (https://splunkbase.splunk.com/app/3120/) for visualizing the query submission/query reading/query result writing process by using the following query as *a real time Splunk search* (recent 300 seconds):
 
 	```
 	index=main (sourcetype="submitted_query" OR sourcetype="issued_query" OR sourcetype="query_results") 
@@ -178,6 +179,46 @@ curl -X "POST" "https://localhost:8089/services/osquery/distributed_write" \
   		"node_key": "test_node_key"
 	  }'
 ~~~
+
+Troubleshooting
+=================
+* Find all the enrolled nodes
+
+```
+index=main sourcetype="enrollment" 
+| fields event.node_key, _time
+| table * 
+```
+
+* Retrieve submitted ad hoc osqueries
+
+```
+index=main sourcetype=submitted_query 
+| fields query_id, query, _time 
+| table *
+```
+
+* TLS server API logging messages will be stored in var/log/splunk/python.log, and can be searched like:
+```
+index=_internal sourcetype="splunk_python" action="pending_queries_retrieved"
+```
+
+* Find all queries issued to nodes 
+```
+index=main sourcetype="issued_query"
+```
+
+* Find queries results written back from nodes
+```
+index=_internal action="distributed_write_query_results"
+```
+
+* Search to see if there is any failed query
+```
+index=_internal sourcetype=failed_queries
+```
+
+* `docker logs ${osquery_container_id}` to see if there is any "Executing distributed query" in osquery client stdout indicating the distributed query is really performed locally
 
 TODO
 =========

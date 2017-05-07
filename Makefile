@@ -1,4 +1,7 @@
 build:
+	vagrant up
+
+rebuild:
 	vagrant destroy --force; VAGRANT_LOG=info vagrant up
 	
 ssh:
@@ -29,6 +32,12 @@ build_osquery_client:
 	docker build --file osquery/Dockerfile --tag niyue/osquery .
 	docker build --file osquery/centosDockerfile --tag niyue/osquery:centos .
 	docker build --file osquery/centos6Dockerfile --tag niyue/osquery:centos6 .
+
+add_clients:
+	docker stack deploy --compose-file docker-stack.yml osqueryd
+
+rm_clients:
+	docker stack rm osqueryd
 
 osqueryd:
 	docker run --add-host SplunkServerDefaultCert:172.17.0.1 niyue/osquery
