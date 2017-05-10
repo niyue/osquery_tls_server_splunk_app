@@ -26,7 +26,9 @@ You can issue an osquery using the `osquery` macro in the Splunk app with some a
 | eval distro=name + " " + major
 | stats count by distro
 ```
-NOTE: Because the osquery results are written back asynchrounusly from multiple nodes, please submit this query as *a real time Splunk search*, with 300 second window for example, so that you can see the results directly, and if you submit it as a plain Splunk search, you may not see any result because the results are not written back yet.
+NOTE: Because the osquery results are written back asynchrounusly from multiple nodes, please submit this query as *a real time Splunk search*, with 300 seconds window for example, so that you can see the results directly after submitting the search. 
+
+If you submit it as a plain Splunk search, you may not see any result because the results are not written back yet, and in that case, you have to issue another Splunk search to query the results later. Currently, the query results are stored in `main` index with `query_results` sourcetype, so you can issue query like `index=main sourcetype="query_results"` and filter the results using your `query_id` field.
 
 ![OS distro distribution query](./assets/os-distro-query.png "OS distro distribution query")
 
@@ -51,12 +53,12 @@ How it works
 
 ![architecture](./assets/arch.png "architecture")
 
-1. Every osquery node enrolls itself with the osquery TLS server Splunk app
-2. User submits osquery as a Splunk search in the Splunk app
-3. The Splunk app distributes the osquery to all nodes enrolled
+1. Every osquery node enrolls itself with the osquery TLS server Splunk app (<span style="color:red">red</span> lines in the above picture)
+2. User submits osquery as a Splunk search in the Splunk app (<span style="color:orange">orange</span> lines)
+3. The Splunk app distributes the osquery to all nodes enrolled (<span style="color:yellow">yellow</span> lines)
 4. Each osquery node receiving the osquery performs the query locally
-5. Each osquery node writes the query results back to the Splunk app once the query finishes
-6. Splunk aggregates the distributed osquery result and presents the result to the user
+5. Each osquery node writes the query results back to the Splunk app once the query finishes (<span style="color:green">green</span> lines)
+6. Splunk aggregates the distributed osquery result and presents the result to the user (<span style="color:blue">blue</span> lines)
 
 ## Visualizing the osquery execution using timeline
 The entire osquery execution flow of steps 2~5 in the above section can be visualized using the timeline visualization.
