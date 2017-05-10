@@ -61,7 +61,7 @@ How it works
 6. Splunk aggregates the distributed osquery result and presents the result to the user (<span style="color:blue">blue</span> lines)
 
 ## Visualizing the osquery execution using timeline
-The entire osquery execution flow of steps 2~5 in the above section can be visualized using the timeline visualization.
+If you have the [timeline custom visualization app](https://splunkbase.splunk.com/app/3120/) installed in Splunk, the entire osquery execution flow of steps 2~5 in the above section can be visualized using the timeline visualization.
 
 ![osquery execution timeline](./assets/query-execution-timeline.png "osquery execution timeline")
 
